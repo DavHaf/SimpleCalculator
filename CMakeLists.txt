@@ -34,7 +34,6 @@ add_executable(
 target_link_libraries(
     calculator_test
     GTest::gtest_main
-    equation
 )
 
 include(GoogleTest)
