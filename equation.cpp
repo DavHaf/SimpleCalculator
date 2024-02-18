@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iterator>
 #include <list>
+#include <memory>
 #include <tuple>
 
 using namespace std;
@@ -10,32 +11,21 @@ using namespace std;
 * and priority, which represents how many layers of parentheses deep this operation is
 */
 class Operation {
-    enum operationType { add, subtract, multiply, divide };
     public:
+        enum operationType { multiply, divide, addAndSub, last };
         int value; // the value at this operation
         operationType opType; // what will be performed on the next operation (addition, subtraction, etc)
         int priority; // how much priority this operation has, the greater the value the higher priority
 
-        Operation(int value, char typeChar, int priority) {
+        Operation(const int &value, const int &priority) {
             this->value = value;
             this->priority = priority;
-
-            switch (typeChar) {
-                case '+':
-                    this->opType = add;
-                    break;
-                case '-':
-                    this->opType = subtract;
-                    break;
-                case '*':
-                    this->opType = multiply;
-                    break;
-                case '/':
-                    this->opType = divide;
-                    break;
-            }
-
         }
+
+        virtual operationType getOpType() { return last; };
+        virtual int performOperation(const int &value) {
+            return this->value;
+        };
 
         /**
         * After operations are performed, the value becoms the result of the operation,
@@ -45,65 +35,69 @@ class Operation {
         * minPriority - the minimum priority that this operation can proceed for
         * Returns true when the operation could be performed
         */
-        bool performDivide(Operation param, int minPriority) {
-            if (this->priority < minPriority) {
+        bool calculate(Operation &param) {
+            if (this->priority < param.priority) {
                 return false;
             }
 
-            if (this->opType == divide) {
-                this->value = this->value / param.value;
-                this->opType = param.opType;
-                this->priority = param.priority;
-                return true;
-            }
-            return false;
-        }
-
-        bool performMultiply(Operation param, int minPriority) {
-            if (this->priority < minPriority) {
+            if (this->priority == param.priority && this->getOpType() > param.getOpType()) {
                 return false;
             }
 
-            if (this->opType == multiply) {
-                this->value = this->value * param.value;
-                this->opType = param.opType;
-                this->priority = param.priority;
-                return true;
-            }
-            return false;
-        }
-
-        bool performAddOrSub(Operation param, int minPriority) {
-            if (this->priority < minPriority) {
-                return false;
-            }
-
-            if (this->opType == add) {
-                this->value = this->value + param.value;
-                this->opType = param.opType;
-                this->priority = param.priority;
-                return true;
-            }
-            if (this->opType == subtract) {
-                this->value = this->value - param.value;
-                this->opType = param.opType;
-                this->priority = param.priority;
-                return true;
-            }
-            return false;
+            param.value = this->performOperation(param.value);
+            return true;
         }
 };
 
+class Add : public Operation {
+    public:
+        Add(const int &value, const int &priority) : Operation(value, priority) {}
+        operationType getOpType() override { return addAndSub; }
+
+        int performOperation(const int &value) override {\
+            return this->value + value;
+        }
+};
+
+class Subtract : public Operation {
+    public:
+        Subtract(const int &value, const int &priority) : Operation(value, priority) {}
+        operationType getOpType() override { return addAndSub; }
+
+        int performOperation(const int &value) override {
+            return this->value - value;
+        }
+};
+
+class Multiply : public Operation {
+    public:
+        Multiply(const int &value, const int &priority) : Operation(value, priority) {}
+        operationType getOpType() override { return multiply; }
+
+        int performOperation(const int &value) override {
+            return this->value * value;
+        }
+};
+
+class Divide : public Operation {
+    public:
+        Divide(const int &value, const int &priority) : Operation(value, priority) {}
+        operationType getOpType() override { return divide; }
+
+        int performOperation(const int &value) override {
+            return this->value / value;
+        }
+};
 
 class Equation {
 
     public:
 
-        list<Operation> operations;
+        list<unique_ptr<Operation>> operations;
         int maxDepth = 0;
 
         Equation(string equationString) {
-            std::tie(this->operations, this->maxDepth) = readEquation(equationString);
+            this->operations = readEquation(equationString);
         }
 
         /**
@@ -121,8 +115,8 @@ class Equation {
         * eq - the equation string to read
         * Returns a typle of a list of operations and the maximum depth of parentheses found
         */
-        tuple<list<Operation>, int> readEquation(string eq) {
-            list<Operation> ops;
+        list<unique_ptr<Operation>> readEquation(string eq) {
+            list<unique_ptr<Operation>> ops;
             int length = eq.size();
             int depth = 0;
             int maxDepth = 0;
@@ -167,14 +161,29 @@ class Equation {
                     typeChar = eq[i];
                 }
 
-                Operation op(stoi(valueStr), typeChar, depth);
-                ops.push_back(op);
+                int value = stoi(valueStr);
+
+                switch (typeChar) {
+                    case '-':
+                        ops.push_back(make_unique<Subtract>(value, depth));
+                        break;
+                    case '*':
+                        ops.push_back(make_unique<Multiply>(value, depth));
+                        break;
+                    case '/':
+                        ops.push_back(make_unique<Divide>(value, depth));
+                        break;
+                    default:
+                        ops.push_back(make_unique<Add>(value, depth));
+                        break;
+
+                }
 
                 while (i < length && eq[i] == ' ') { i++; } // skip spaces
             }
 
 
-            return {ops, maxDepth};
+            return ops;
     }
 
     /**
@@ -187,42 +196,22 @@ class Equation {
     * depth - the maximum depth to start looking at
     * returns the final result of computation of the operations
     */
-    int computeOperations(list<Operation> &ops, int depth) {
+    int computeOperations(list<unique_ptr<Operation>> &ops, int depth) {
 
-        for (int priority = depth; priority >= 0; priority--) {
+        int numCalculated = 0;
 
-            // multiplication
-            list<Operation>::iterator op = begin(ops);
+        do {
+            numCalculated = 0;
+            auto op = begin(ops);
             while ( op != end(ops) && next(op) != end(ops)) {
-                if (op->performMultiply(*next(op), priority)) {
-                    ops.erase(next(op));
-                } else {
-                    op++;
+                if ((*op)->calculate(**next(op))) {
+                    op = ops.erase(op);
+                    numCalculated++;
                 }
+                op++;
             }
+        } while (numCalculated > 0);
 
-            // division
-            op = begin(ops);
-            while ( op != end(ops) && next(op) != end(ops)) {
-                if (op->performDivide(*next(op), priority)) {
-                    ops.erase(next(op));
-                } else {
-                    op++;
-                }
-            }
-
-            // addition and subtraction
-            op = begin(ops);
-            while ( op != end(ops) && next(op) != end(ops)) {
-                if (op->performAddOrSub(*next(op), priority)) {
-                    ops.erase(next(op));
-                } else {
-                    op++;
-                }
-            }
-
-        }
-
-        return ops.begin()->value;
+        return (*ops.begin())->value;
     }
 };
