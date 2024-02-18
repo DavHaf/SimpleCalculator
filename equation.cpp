@@ -1,10 +1,6 @@
-#include <iostream>
 #include <iterator>
 #include <list>
 #include <memory>
-#include <tuple>
-
-using namespace std;
 
 /**
 * One operation in an equation, contains the value, the operation to be performed on the value to its right in the equation,
@@ -17,13 +13,13 @@ class Operation {
         operationType opType; // what will be performed on the next operation (addition, subtraction, etc)
         int priority; // how much priority this operation has, the greater the value the higher priority
 
-        Operation(const int &value, const int &priority) {
+        Operation(const int& value, const int& priority) {
             this->value = value;
             this->priority = priority;
         }
 
         virtual operationType getOpType() { return last; };
-        virtual int performOperation(const int &value) {
+        virtual int performOperation(const int& value) {
             return this->value;
         };
 
@@ -35,7 +31,7 @@ class Operation {
         * minPriority - the minimum priority that this operation can proceed for
         * Returns true when the operation could be performed
         */
-        bool calculate(Operation &param) {
+        bool calculate(Operation& param) {
             if (this->priority < param.priority) {
                 return false;
             }
@@ -51,40 +47,40 @@ class Operation {
 
 class Add : public Operation {
     public:
-        Add(const int &value, const int &priority) : Operation(value, priority) {}
+        Add(const int& value, const int& priority) : Operation(value, priority) {}
         operationType getOpType() override { return addAndSub; }
 
-        int performOperation(const int &value) override {\
+        int performOperation(const int& value) override {\
             return this->value + value;
         }
 };
 
 class Subtract : public Operation {
     public:
-        Subtract(const int &value, const int &priority) : Operation(value, priority) {}
+        Subtract(const int& value, const int& priority) : Operation(value, priority) {}
         operationType getOpType() override { return addAndSub; }
 
-        int performOperation(const int &value) override {
+        int performOperation(const int& value) override {
             return this->value - value;
         }
 };
 
 class Multiply : public Operation {
     public:
-        Multiply(const int &value, const int &priority) : Operation(value, priority) {}
+        Multiply(const int& value, const int& priority) : Operation(value, priority) {}
         operationType getOpType() override { return multiply; }
 
-        int performOperation(const int &value) override {
+        int performOperation(const int& value) override {
             return this->value * value;
         }
 };
 
 class Divide : public Operation {
     public:
-        Divide(const int &value, const int &priority) : Operation(value, priority) {}
+        Divide(const int& value, const int& priority) : Operation(value, priority) {}
         operationType getOpType() override { return divide; }
 
-        int performOperation(const int &value) override {
+        int performOperation(const int& value) override {
             return this->value / value;
         }
 };
@@ -93,10 +89,9 @@ class Equation {
 
     public:
 
-        list<unique_ptr<Operation>> operations;
-        int maxDepth = 0;
+        std::list<std::unique_ptr<Operation>> operations;
 
-        Equation(string equationString) {
+        Equation(std::string equationString) {
             this->operations = readEquation(equationString);
         }
 
@@ -106,20 +101,19 @@ class Equation {
         * Returns the solution to the equation
         */
         int solution() {
-            return computeOperations(operations, maxDepth);
+            return computeOperations(operations);
         }
 
         /**
         * Read through an equation as a string and return a list of operations
         *
         * eq - the equation string to read
-        * Returns a typle of a list of operations and the maximum depth of parentheses found
+        * A list of operations
         */
-        list<unique_ptr<Operation>> readEquation(string eq) {
-            list<unique_ptr<Operation>> ops;
+        std::list<std::unique_ptr<Operation>> readEquation(std::string eq) {
+            std::list<std::unique_ptr<Operation>> ops;
             int length = eq.size();
             int depth = 0;
-            int maxDepth = 0;
 
             for (int i = 0; i < length; i++) {
 
@@ -129,14 +123,11 @@ class Equation {
                 while (i < length && eq[i] == '(') {
                     i++;
                     depth++;
-                    if (depth > maxDepth) {
-                        maxDepth = depth;
-                    }
                 }
 
                 while (i < length && eq[i] == ' ') { i++; } // skip spaces
 
-                string valueStr;
+                std::string valueStr;
                 valueStr += eq[i]; // always grab the number's first digit or minus sign
                 i++;
 
@@ -165,16 +156,16 @@ class Equation {
 
                 switch (typeChar) {
                     case '-':
-                        ops.push_back(make_unique<Subtract>(value, depth));
+                        ops.push_back(std::make_unique<Subtract>(value, depth));
                         break;
                     case '*':
-                        ops.push_back(make_unique<Multiply>(value, depth));
+                        ops.push_back(std::make_unique<Multiply>(value, depth));
                         break;
                     case '/':
-                        ops.push_back(make_unique<Divide>(value, depth));
+                        ops.push_back(std::make_unique<Divide>(value, depth));
                         break;
                     default:
-                        ops.push_back(make_unique<Add>(value, depth));
+                        ops.push_back(std::make_unique<Add>(value, depth));
                         break;
 
                 }
@@ -193,22 +184,19 @@ class Equation {
     * This process repeats until only one operator containing the computed value remains
     *
     * ops - a list of operations
-    * depth - the maximum depth to start looking at
     * returns the final result of computation of the operations
     */
-    int computeOperations(list<unique_ptr<Operation>> &ops, int depth) {
+    int computeOperations(std::list<std::unique_ptr<Operation>>& ops) {
 
         int numCalculated = 0;
 
         do {
             numCalculated = 0;
-            auto op = begin(ops);
-            while ( op != end(ops) && next(op) != end(ops)) {
+            for (auto op = begin(ops); op != end(ops) && next(op) != end(ops); op++) {
                 if ((*op)->calculate(**next(op))) {
                     op = ops.erase(op);
                     numCalculated++;
                 }
-                op++;
             }
         } while (numCalculated > 0);
 

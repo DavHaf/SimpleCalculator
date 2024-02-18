@@ -62,8 +62,14 @@ TEST(QueueTest, Parentheses4) {
   EXPECT_EQ(result, 3);
 }
 
-TEST(QueueTest, OrderOfOperations) {
+TEST(QueueTest, OrderOfOperations1) {
   Equation eq("3+5-16/2*4");
   int result = eq.solution();
   EXPECT_EQ(result, 6);
+}
+
+TEST(QueueTest, OrderOfOperations2) {
+  Equation eq("4+5+1-2+5*10-9");
+  int result = eq.solution();
+  EXPECT_EQ(result, 49);
 }

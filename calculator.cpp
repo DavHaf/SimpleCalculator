@@ -1,24 +1,18 @@
 #include <iostream>
-#include <iterator>
-#include <list>
-#include <tuple>
 
 #include "equation.cpp"
 
-using namespace std;
-
-
 int main(int argc, char *argv[]) {
-    string equationString;
+    std::string equationString;
     if (argc > 1) {
         equationString = argv[1];
     } else {
-        cout << "Input an equation. It will be evaluated using PEMDAS order of operations." << endl;
-        cin >> equationString;
+        std::cout << "Input an equation. It will be evaluated using PEMDAS order of operations." << std::endl;
+        std::cin >> equationString;
     }
 
     Equation eq(equationString);
     int result = eq.solution();
-    cout << "Result = " << result << endl;
+    std::cout << "Result = " << result << std::endl;
     return 0;
 }
