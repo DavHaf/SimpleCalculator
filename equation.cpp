@@ -7,29 +7,21 @@
 * and priority, which represents how many layers of parentheses deep this operation is
 */
 class Operation {
-    public:
-        enum operationType { multiply, divide, addAndSub, last };
-        int value; // the value at this operation
-        operationType opType; // what will be performed on the next operation (addition, subtraction, etc)
-        int priority; // how much priority this operation has, the greater the value the higher priority
 
+    public:
         Operation(const int& value, const int& priority) {
             this->value = value;
             this->priority = priority;
         }
 
-        virtual operationType getOpType() { return last; };
-        virtual int performOperation(const int& value) {
-            return this->value;
-        };
+        int getValue() { return this->value; }
 
         /**
         * After operations are performed, the value becoms the result of the operation,
         * and its operation type and priority will become that of what it operated on
         *
         * param - the operation value that this operation will be performed upon
-        * minPriority - the minimum priority that this operation can proceed for
-        * Returns true when the operation could be performed
+        * Returns true if the operation could be performed
         */
         bool calculate(Operation& param) {
             if (this->priority < param.priority) {
@@ -43,14 +35,23 @@ class Operation {
             param.value = this->performOperation(param.value);
             return true;
         }
+
+    protected:
+        enum operationType { multiply, divide, addAndSub };
+        int value; // the value at this operation
+        int priority; // how much priority this operation has based on parentheses, the greater the value the higher priority
+
+        virtual operationType getOpType() = 0;
+        virtual int performOperation(const int& value) = 0;
 };
 
 class Add : public Operation {
     public:
         Add(const int& value, const int& priority) : Operation(value, priority) {}
+    private:
         operationType getOpType() override { return addAndSub; }
 
-        int performOperation(const int& value) override {\
+        int performOperation(const int& value) override {
             return this->value + value;
         }
 };
@@ -58,6 +59,7 @@ class Add : public Operation {
 class Subtract : public Operation {
     public:
         Subtract(const int& value, const int& priority) : Operation(value, priority) {}
+    private:
         operationType getOpType() override { return addAndSub; }
 
         int performOperation(const int& value) override {
@@ -68,6 +70,7 @@ class Subtract : public Operation {
 class Multiply : public Operation {
     public:
         Multiply(const int& value, const int& priority) : Operation(value, priority) {}
+    private:
         operationType getOpType() override { return multiply; }
 
         int performOperation(const int& value) override {
@@ -78,6 +81,7 @@ class Multiply : public Operation {
 class Divide : public Operation {
     public:
         Divide(const int& value, const int& priority) : Operation(value, priority) {}
+    private:
         operationType getOpType() override { return divide; }
 
         int performOperation(const int& value) override {
@@ -200,6 +204,6 @@ class Equation {
             }
         } while (numCalculated > 0);
 
-        return (*ops.begin())->value;
+        return (*ops.begin())->getValue();
     }
 };
