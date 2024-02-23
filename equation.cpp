@@ -87,6 +87,9 @@ class Divide : public Operation {
         operationType getOpType() override { return divide; }
 
         int performOperation(const int& value) override {
+            if (value == 0) {
+                throw std::runtime_error( "Divide by Zero" );
+            }
             return this->value / value;
         }
 };
@@ -109,7 +112,8 @@ class Equation {
         * Returns the solution to the equation
         */
         int solution() {
-            return computeOperations(operations);
+            computeOperations();
+            return operations.front()->getValue();
         }
 
     private:
@@ -154,7 +158,11 @@ class Equation {
                     i++;
                 }
 
-                if (valueStr.size() < 1 || (valueStr.size() == 1 && valueStr[0] == '-')) {
+                int value;
+
+                try {
+                    value = stoi(valueStr);
+                } catch(const std::invalid_argument& e) {
                     throw std::invalid_argument( "Invalid Integer" );
                 }
 
@@ -167,14 +175,12 @@ class Equation {
                 }
 
                 // get our operation, default to addition for the last numbers's operation
-                char typeChar = '+';
-                if (i < length) {
-                    typeChar = eq[i];
+                if (i >= length) {
+                    ops.push_back(std::make_unique<Add>(value, depth));
+                    break;
                 }
 
-                int value = stoi(valueStr);
-
-                switch (typeChar) {
+                switch (eq[i]) {
                     case '+':
                         ops.push_back(std::make_unique<Add>(value, depth));
                         break;
@@ -205,11 +211,10 @@ class Equation {
     * After an operation is able to be completed, its right partner will be deleted
     * This process repeats until only one operator containing the computed value remains
     *
-    * ops - a list of operations
-    * returns the final result of computation of the operations
     */
-    int computeOperations(std::list<std::unique_ptr<Operation>>& ops) {
-
+    void computeOperations() {
+    
+        std::list<std::unique_ptr<Operation>>& ops = this->operations;
         int numCalculated = 0;
 
         do {
@@ -221,7 +226,5 @@ class Equation {
                 }
             }
         } while (numCalculated > 0);
-
-        return (*ops.begin())->getValue();
     }
 };

@@ -136,7 +136,7 @@ TEST(Equation, UnexpectedEnd) {
     }, std::invalid_argument);
 }
 
-TEST(Equation, InvalidInteger) {
+TEST(Equation, InvalidInteger1) {
     EXPECT_THROW({
         try {
             Equation eq("2/-");
@@ -145,4 +145,28 @@ TEST(Equation, InvalidInteger) {
             throw;
         }
     }, std::invalid_argument);
+}
+
+TEST(Equation, InvalidInteger2) {
+    EXPECT_THROW({
+        try {
+            Equation eq("a20+5");
+        } catch(const std::invalid_argument& e) {
+            EXPECT_STREQ(e.what(), "Invalid Integer");
+            throw;
+        }
+    }, std::invalid_argument);
+}
+
+TEST(Equation, DivideByZero) {
+
+    EXPECT_THROW({
+        Equation eq("1/0");
+        try {
+            eq.solution();
+        } catch(const std::runtime_error& e) {
+            EXPECT_STREQ(e.what(), "Divide by Zero");
+            throw;
+        }
+    }, std::runtime_error);
 }
