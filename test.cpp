@@ -91,3 +91,58 @@ TEST(Equation, InvalidOperation) {
         }
     }, std::invalid_argument);
 }
+
+TEST(Equation, MissingEquation) {
+    EXPECT_THROW({
+        try {
+            Equation eq("");
+        } catch(const std::invalid_argument& e) {
+            EXPECT_STREQ(e.what(), "Missing Equation");
+            throw;
+        }
+    }, std::invalid_argument);
+}
+
+TEST(Equation, MismatchedParentheses1) {
+    EXPECT_THROW({
+        try {
+            Equation eq("((1+2)-1");
+        } catch(const std::invalid_argument& e) {
+            EXPECT_STREQ(e.what(), "Mismatched Parentheses");
+            throw;
+        }
+    }, std::invalid_argument);
+}
+
+TEST(Equation, MismatchedParentheses2) {
+    EXPECT_THROW({
+        try {
+            Equation eq("(1+2))-1");
+        } catch(const std::invalid_argument& e) {
+            EXPECT_STREQ(e.what(), "Mismatched Parentheses");
+            throw;
+        }
+    }, std::invalid_argument);
+}
+
+TEST(Equation, UnexpectedEnd) {
+    EXPECT_THROW({
+        try {
+            Equation eq("2+3-(");
+        } catch(const std::invalid_argument& e) {
+            EXPECT_STREQ(e.what(), "Unexpected End of Equation");
+            throw;
+        }
+    }, std::invalid_argument);
+}
+
+TEST(Equation, InvalidInteger) {
+    EXPECT_THROW({
+        try {
+            Equation eq("2/-");
+        } catch(const std::invalid_argument& e) {
+            EXPECT_STREQ(e.what(), "Invalid Integer");
+            throw;
+        }
+    }, std::invalid_argument);
+}

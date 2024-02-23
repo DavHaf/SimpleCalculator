@@ -126,6 +126,10 @@ class Equation {
             int depth = 0;
             int length = eq.size();
 
+            if (length == 0) {
+                throw std::invalid_argument( "Missing Equation" );
+            }
+
             for (int i = 0; i < length; i++) {
 
                 // increment our depth when we find an open parentheses
@@ -133,9 +137,15 @@ class Equation {
                     i++;
                     depth++;
                 }
+            
+                if (i >= length) {
+                    throw std::invalid_argument( "Unexpected End of Equation" );
+                }
+
 
                 std::string valueStr;
-                valueStr += eq[i]; // always grab the number's first digit or minus sign
+                // always grab the number's first digit or minus sign
+                valueStr += eq[i];
                 i++;
 
                 // find all the digits in a number
@@ -144,9 +154,16 @@ class Equation {
                     i++;
                 }
 
+                if (valueStr.size() < 1 || (valueStr.size() == 1 && valueStr[0] == '-')) {
+                    throw std::invalid_argument( "Invalid Integer" );
+                }
+
                 while (i < length && eq[i] == ')') {
                     i++;
                     depth--;
+                    if (depth < 0) {
+                        throw std::invalid_argument( "Mismatched Parentheses" );
+                    }
                 }
 
                 // get our operation, default to addition for the last numbers's operation
@@ -175,6 +192,9 @@ class Equation {
                 }
             }
 
+            if (depth != 0) {
+                throw std::invalid_argument( "Mismatched Parentheses" );
+            }
 
             return ops;
     }
