@@ -11,8 +11,14 @@ int main(int argc, char *argv[]) {
         std::cin >> equationString;
     }
 
-    Equation eq(equationString);
-    int result = eq.solution();
-    std::cout << "Result = " << result << std::endl;
+    try {
+        Equation eq(equationString);
+        int result = eq.solution();
+        std::cout << "Result = " << result << std::endl;
+    } catch(const std::invalid_argument& e) {
+        std::cout << "Error parsing equation: " << e.what() << std::endl;
+        return -1;
+    }
+
     return 0;
 }

@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <iterator>
 #include <list>
 #include <memory>
+#include <stdexcept>
 
 /**
 * One operation in an equation, contains the value, the operation to be performed on the value to its right in the equation,
@@ -96,6 +98,8 @@ class Equation {
         std::list<std::unique_ptr<Operation>> operations;
 
         Equation(std::string equationString) {
+            // Remove Space Characters
+            equationString.erase(remove_if(equationString.begin(), equationString.end(), isspace), equationString.end());
             this->operations = readEquation(equationString);
         }
 
@@ -108,28 +112,27 @@ class Equation {
             return computeOperations(operations);
         }
 
+    private:
+
         /**
         * Read through an equation as a string and return a list of operations
         *
         * eq - the equation string to read
         * A list of operations
         */
-        std::list<std::unique_ptr<Operation>> readEquation(std::string eq) {
+        static std::list<std::unique_ptr<Operation>> readEquation(std::string eq) {
             std::list<std::unique_ptr<Operation>> ops;
-            int length = eq.size();
+
             int depth = 0;
+            int length = eq.size();
 
             for (int i = 0; i < length; i++) {
-
-                while (i < length && eq[i] == ' ') { i++; } // skip spaces
 
                 // increment our depth when we find an open parentheses
                 while (i < length && eq[i] == '(') {
                     i++;
                     depth++;
                 }
-
-                while (i < length && eq[i] == ' ') { i++; } // skip spaces
 
                 std::string valueStr;
                 valueStr += eq[i]; // always grab the number's first digit or minus sign
@@ -141,14 +144,10 @@ class Equation {
                     i++;
                 }
 
-                while (i < length && eq[i] == ' ') { i++; } // skip spaces
-
                 while (i < length && eq[i] == ')') {
                     i++;
                     depth--;
                 }
-
-                while (i < length && eq[i] == ' ') { i++; } // skip spaces
 
                 // get our operation, default to addition for the last numbers's operation
                 char typeChar = '+';
@@ -159,6 +158,9 @@ class Equation {
                 int value = stoi(valueStr);
 
                 switch (typeChar) {
+                    case '+':
+                        ops.push_back(std::make_unique<Add>(value, depth));
+                        break;
                     case '-':
                         ops.push_back(std::make_unique<Subtract>(value, depth));
                         break;
@@ -169,12 +171,8 @@ class Equation {
                         ops.push_back(std::make_unique<Divide>(value, depth));
                         break;
                     default:
-                        ops.push_back(std::make_unique<Add>(value, depth));
-                        break;
-
+                        throw std::invalid_argument( "Invalid Operation" );
                 }
-
-                while (i < length && eq[i] == ' ') { i++; } // skip spaces
             }
 
 
