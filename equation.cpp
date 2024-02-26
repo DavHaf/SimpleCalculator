@@ -26,21 +26,21 @@ class Operation {
         * param - the operation value that this operation will be performed upon
         * Returns true if the operation could be performed
         */
-        bool calculate(Operation& param) {
-            if (this->priority < param.priority) {
+        bool calculate(std::unique_ptr<Operation>& param) {
+            if (this->priority < param->priority) {
                 return false;
             }
 
-            if (this->priority == param.priority && this->getOpType() > param.getOpType()) {
+            if (this->priority == param->priority && this->getOpType() > param->getOpType()) {
                 return false;
             }
 
-            param.value = this->performOperation(param.value);
+            param->value = this->performOperation(param->value);
             return true;
         }
 
     protected:
-        enum operationType { multiplyDivide, addSubtract };
+        enum operationType { exponent, multiplyDivide, addSubtract }; // categories of operations starting with the highest order priority
         long double value; // the value at this operation
         int priority; // how much priority this operation has based on parentheses, the greater the value the higher priority
 
@@ -106,6 +106,17 @@ class DivideFloor : public Operation {
                 throw std::runtime_error( "Divide by Zero" );
             }
             return std::floor(this->value / value);
+        }
+};
+
+class Exponent : public Operation {
+    public:
+        Exponent(const long double& value, const int& priority) : Operation(value, priority) {}
+    private:
+        operationType getOpType() override { return exponent; }
+
+        long double performOperation(const long double& value) override {
+            return std::pow(this->value, value);
         }
 };
 
@@ -186,7 +197,7 @@ class Equation {
                 long double value;
 
                 try {
-                    value = stod(valueStr);
+                    value = stold(valueStr);
                 } catch(const std::invalid_argument& e) {
                     throw std::invalid_argument( "Invalid Number" );
                 }
@@ -213,7 +224,12 @@ class Equation {
                         ops.push_back(std::make_unique<Subtract>(value, depth));
                         break;
                     case '*':
-                        ops.push_back(std::make_unique<Multiply>(value, depth));
+                        if (i < length && eq[i+1] == '*') {
+                            ops.push_back(std::make_unique<Exponent>(value, depth));
+                            i++;
+                        } else {
+                            ops.push_back(std::make_unique<Multiply>(value, depth));
+                        }
                         break;
                     case '/':
                         if (i < length && eq[i+1] == '/') {
@@ -236,21 +252,21 @@ class Equation {
     }
 
     /**
-    * Iterates through operations starting at the highest priority (the deepest parentheses values)
-    * At each level of depth, all multiplication operations, then division, and finally addition and subtraction
-    * After an operation is able to be completed, its right partner will be deleted
-    * This process repeats until only one operator containing the computed value remains
-    *
+    * Reduce the list of operations down to just a single operation with the equation's solution as its value
     */
     void computeOperations() {
     
         std::list<std::unique_ptr<Operation>>& ops = this->operations;
         int numCalculated = 0;
 
+        // repeat until not calculations are left to compute
         do {
             numCalculated = 0;
+
+            // loop through operations and try to compute 
             for (auto op = begin(ops); op != end(ops) && next(op) != end(ops); op++) {
-                if ((*op)->calculate(**next(op))) {
+                // if the operation was allowed by order of operations, remove that operation from the list
+                if ((*op)->calculate(*next(op))) {
                     op = ops.erase(op);
                     numCalculated++;
                 }

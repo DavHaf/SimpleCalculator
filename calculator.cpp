@@ -7,7 +7,7 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         equationString = argv[1];
     } else {
-        std::cout << "Input an equation. It will be evaluated using PEMDAS order of operations." << std::endl;
+        std::cout << "Input an equation. It will be evaluated parentheses first, then exponentiation, division and multiplication, and finally addition and subtraction." << std::endl;
         std::cin >> equationString;
     }
 

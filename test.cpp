@@ -33,6 +33,12 @@ TEST(Equation, Division) {
     EXPECT_EQ(result, 1.5);
 }
 
+TEST(Equation, Exponent) {
+    Equation eq("2**-1");
+    long double result = eq.solution();
+    EXPECT_EQ(result, 0.5);
+}
+
 TEST(Equation, DivisionFloor) {
     Equation eq("48//-3");
     long double result = eq.solution();
@@ -85,6 +91,12 @@ TEST(Equation, OrderOfOperations2) {
     Equation eq("4+5+1-2+5*10-9");
     long double result = eq.solution();
     EXPECT_EQ(result, 49);
+}
+
+TEST(Equation, OrderOfOperations3) {
+    Equation eq("3+5-16/2*4 + 4**2");
+    long double result = eq.solution();
+    EXPECT_EQ(result, -8);
 }
 
 TEST(Equation, InvalidOperation) {
