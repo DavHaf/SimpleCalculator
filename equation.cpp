@@ -40,7 +40,7 @@ class Operation {
         }
 
     protected:
-        enum operationType { multiply, divide, addAndSub };
+        enum operationType { multiplyDivide, addSubtract };
         long double value; // the value at this operation
         int priority; // how much priority this operation has based on parentheses, the greater the value the higher priority
 
@@ -52,7 +52,7 @@ class Add : public Operation {
     public:
         Add(const long double& value, const int& priority) : Operation(value, priority) {}
     private:
-        operationType getOpType() override { return addAndSub; }
+        operationType getOpType() override { return addSubtract; }
 
         long double performOperation(const long double& value) override {
             return this->value + value;
@@ -63,7 +63,7 @@ class Subtract : public Operation {
     public:
         Subtract(const long double& value, const int& priority) : Operation(value, priority) {}
     private:
-        operationType getOpType() override { return addAndSub; }
+        operationType getOpType() override { return addSubtract; }
 
         long double performOperation(const long double& value) override {
             return this->value - value;
@@ -74,7 +74,7 @@ class Multiply : public Operation {
     public:
         Multiply(const long double& value, const int& priority) : Operation(value, priority) {}
     private:
-        operationType getOpType() override { return multiply; }
+        operationType getOpType() override { return multiplyDivide; }
 
         long double performOperation(const long double& value) override {
             return this->value * value;
@@ -85,7 +85,7 @@ class Divide : public Operation {
     public:
         Divide(const long double& value, const int& priority) : Operation(value, priority) {}
     private:
-        operationType getOpType() override { return divide; }
+        operationType getOpType() override { return multiplyDivide; }
 
         long double performOperation(const long double& value) override {
             if (value == 0) {
@@ -99,7 +99,7 @@ class DivideFloor : public Operation {
     public:
         DivideFloor(const long double& value, const int& priority) : Operation(value, priority) {}
     private:
-        operationType getOpType() override { return divide; }
+        operationType getOpType() override { return multiplyDivide; }
 
         long double performOperation(const long double& value) override {
             if (value == 0) {

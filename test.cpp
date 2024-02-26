@@ -76,9 +76,9 @@ TEST(Equation, Parentheses4) {
 }
 
 TEST(Equation, OrderOfOperations1) {
-    Equation eq("3+5-16//2*4");
+    Equation eq("3+5-16/2*4");
     long double result = eq.solution();
-    EXPECT_EQ(result, 6);
+    EXPECT_EQ(result, -24);
 }
 
 TEST(Equation, OrderOfOperations2) {
