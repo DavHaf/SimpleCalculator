@@ -142,23 +142,34 @@ TEST(Equation, UnexpectedEnd) {
     }, std::invalid_argument);
 }
 
-TEST(Equation, InvalidInteger1) {
+TEST(Equation, InvalidNumber1) {
     EXPECT_THROW({
         try {
             Equation eq("2/-");
         } catch(const std::invalid_argument& e) {
-            EXPECT_STREQ(e.what(), "Invalid Integer");
+            EXPECT_STREQ(e.what(), "Invalid Number");
             throw;
         }
     }, std::invalid_argument);
 }
 
-TEST(Equation, InvalidInteger2) {
+TEST(Equation, InvalidNumber2) {
     EXPECT_THROW({
         try {
             Equation eq("a20+5");
         } catch(const std::invalid_argument& e) {
-            EXPECT_STREQ(e.what(), "Invalid Integer");
+            EXPECT_STREQ(e.what(), "Invalid Number");
+            throw;
+        }
+    }, std::invalid_argument);
+}
+
+TEST(Equation, InvalidNumber3) {
+    EXPECT_THROW({
+        try {
+            Equation eq("1.5.2");
+        } catch(const std::invalid_argument& e) {
+            EXPECT_STREQ(e.what(), "Invalid Number");
             throw;
         }
     }, std::invalid_argument);

@@ -167,18 +167,28 @@ class Equation {
                 valueStr += eq[i];
                 i++;
 
+                int decimalCount = 0;
+
                 // find all the digits in a number
-                while (i < length && eq[i] >= '0' && eq[i] <= '9') {
+                while (i < length && ((eq[i] >= '0' && eq[i] <= '9') || eq[i] == '.')) {
+
+                    if (eq[i] == '.') {
+                        decimalCount ++;
+                    }
+                    if (decimalCount > 1) {
+                        throw std::invalid_argument( "Invalid Number");
+                    }
+
                     valueStr += eq[i];
                     i++;
                 }
 
-                int value;
+                long double value;
 
                 try {
                     value = stod(valueStr);
                 } catch(const std::invalid_argument& e) {
-                    throw std::invalid_argument( "Invalid Integer" );
+                    throw std::invalid_argument( "Invalid Number" );
                 }
 
                 while (i < length && eq[i] == ')') {
