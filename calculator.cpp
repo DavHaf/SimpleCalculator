@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 
     try {
         Equation eq(equationString);
-        int result = eq.solution();
+        long double result = eq.solution();
         std::cout << "Result = " << result << std::endl;
     } catch(const std::invalid_argument& e) {
         std::cout << "Error parsing equation: " << e.what() << std::endl;

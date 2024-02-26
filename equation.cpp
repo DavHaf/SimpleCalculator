@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <iterator>
 #include <list>
 #include <memory>
@@ -11,12 +12,12 @@
 class Operation {
 
     public:
-        Operation(const int& value, const int& priority) {
+        Operation(const long double& value, const int& priority) {
             this->value = value;
             this->priority = priority;
         }
 
-        int getValue() { return this->value; }
+        long double getValue() { return this->value; }
 
         /**
         * After operations are performed, the value becoms the result of the operation,
@@ -40,57 +41,71 @@ class Operation {
 
     protected:
         enum operationType { multiply, divide, addAndSub };
-        int value; // the value at this operation
+        long double value; // the value at this operation
         int priority; // how much priority this operation has based on parentheses, the greater the value the higher priority
 
         virtual operationType getOpType() = 0;
-        virtual int performOperation(const int& value) = 0;
+        virtual long double performOperation(const long double& value) = 0;
 };
 
 class Add : public Operation {
     public:
-        Add(const int& value, const int& priority) : Operation(value, priority) {}
+        Add(const long double& value, const int& priority) : Operation(value, priority) {}
     private:
         operationType getOpType() override { return addAndSub; }
 
-        int performOperation(const int& value) override {
+        long double performOperation(const long double& value) override {
             return this->value + value;
         }
 };
 
 class Subtract : public Operation {
     public:
-        Subtract(const int& value, const int& priority) : Operation(value, priority) {}
+        Subtract(const long double& value, const int& priority) : Operation(value, priority) {}
     private:
         operationType getOpType() override { return addAndSub; }
 
-        int performOperation(const int& value) override {
+        long double performOperation(const long double& value) override {
             return this->value - value;
         }
 };
 
 class Multiply : public Operation {
     public:
-        Multiply(const int& value, const int& priority) : Operation(value, priority) {}
+        Multiply(const long double& value, const int& priority) : Operation(value, priority) {}
     private:
         operationType getOpType() override { return multiply; }
 
-        int performOperation(const int& value) override {
+        long double performOperation(const long double& value) override {
             return this->value * value;
         }
 };
 
 class Divide : public Operation {
     public:
-        Divide(const int& value, const int& priority) : Operation(value, priority) {}
+        Divide(const long double& value, const int& priority) : Operation(value, priority) {}
     private:
         operationType getOpType() override { return divide; }
 
-        int performOperation(const int& value) override {
+        long double performOperation(const long double& value) override {
             if (value == 0) {
                 throw std::runtime_error( "Divide by Zero" );
             }
             return this->value / value;
+        }
+};
+
+class DivideFloor : public Operation {
+    public:
+        DivideFloor(const long double& value, const int& priority) : Operation(value, priority) {}
+    private:
+        operationType getOpType() override { return divide; }
+
+        long double performOperation(const long double& value) override {
+            if (value == 0) {
+                throw std::runtime_error( "Divide by Zero" );
+            }
+            return std::floor(this->value / value);
         }
 };
 
@@ -111,7 +126,7 @@ class Equation {
         *
         * Returns the solution to the equation
         */
-        int solution() {
+        long double solution() {
             computeOperations();
             return operations.front()->getValue();
         }
@@ -161,7 +176,7 @@ class Equation {
                 int value;
 
                 try {
-                    value = stoi(valueStr);
+                    value = stod(valueStr);
                 } catch(const std::invalid_argument& e) {
                     throw std::invalid_argument( "Invalid Integer" );
                 }
@@ -191,7 +206,12 @@ class Equation {
                         ops.push_back(std::make_unique<Multiply>(value, depth));
                         break;
                     case '/':
-                        ops.push_back(std::make_unique<Divide>(value, depth));
+                        if (i < length && eq[i+1] == '/') {
+                            ops.push_back(std::make_unique<DivideFloor>(value, depth));
+                            i++;
+                        } else {
+                            ops.push_back(std::make_unique<Divide>(value, depth));
+                        }
                         break;
                     default:
                         throw std::invalid_argument( "Invalid Operation" );
